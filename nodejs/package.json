@@ -1,0 +1,15 @@
+{
+  "name": "fidojs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fido.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "private": "true",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jwk-to-pem": "^1.2.2"
+  }
+}

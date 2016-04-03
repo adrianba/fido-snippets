@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Web Authentication polyfill test</title>
+<script src="webauthn.js"></script>
+<script language="javascript">
+const credAlgorithm = "RSASSA-PKCS1-v1_5";
+
+function loaded() {
+    document.getElementById('credID').value = localStorage["id"] ? localStorage["id"] : "";
+    document.getElementById('publicKey').value = localStorage["publickey"] ? localStorage["publickey"] : "";
+}
+
+function make() {
+	var userAccountInformation = {
+	  rpDisplayName: "Test Site",
+	  displayName: "Adrian Bateman"
+	};
+
+	var cryptoParams = [
+	  { 
+	    type: "ScopedCred",
+	    algorithm: credAlgorithm,
+	  }
+	];
+
+	// Note: The following call will cause the authenticator to display UI.
+	webauthn.makeCredential(userAccountInformation, cryptoParams).then(function (result) {
+		var id = result.credential.id;
+		var publicKey = result.publicKey;
+
+	    localStorage["id"] = document.getElementById('credID').value = id;
+	    localStorage["publickey"] = document.getElementById('publicKey').value = JSON.stringify(publicKey);
+	}).catch(function (err) {
+	    // No acceptable authenticator or user refused consent. Handle appropriately.
+	    alert(err);
+	});
+}
+
+function parseBase64(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/").replace(/\s/g, '');  
+    return new Uint8Array(Array.prototype.map.call(atob(s), function (c) { return c.charCodeAt(0) }));  
+}
+
+function concatUint8Array(a1,a2) {
+	var d = new Uint8Array(a1.length + a2.length);
+	d.set(a1);
+	d.set(a2,a1.length);
+	return d;
+}
+
+function verify() {
+	var id,authenticatorData,signature,hash;
+	webauthn.getAssertion("challenge").then(function(assertion) {
+
+		id = assertion.credential.id;
+		authenticatorData = assertion.authenticatorData;
+		signature = assertion.signature;
+
+	    return crypto.subtle.digest("SHA-256",parseBase64(assertion.clientData));
+	})
+	.then(function(h) {
+		hash = new Uint8Array(h);
+	    var publicKey = document.getElementById('publicKey').value;
+	    return crypto.subtle.importKey("jwk",JSON.parse(publicKey),credAlgorithm,false,["verify"]);
+	})
+	.then(function(key) {
+		return crypto.subtle.verify({name:credAlgorithm, hash: { name: "SHA-256" }},
+			key,parseBase64(signature),concatUint8Array(parseBase64(authenticatorData),hash));
+	})
+	.then(function(result) {
+		alert("ID=" + id + "\r\n" + result);
+	})
+	.catch(function(err) {
+		alert(err);
+	});
+}
+
+</script>
+</head>
+<body onLoad="loaded()">
+	<button onclick="make()">Make</button> <button onclick="verify()">Verify</button>
+
+	<div>
+	  <input type="text" size="80" id="credID"><br><input type="text" size="120" id="publicKey">
+	</div>
+</body>
+</html>
