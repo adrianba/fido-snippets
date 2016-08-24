@@ -25,7 +25,7 @@ function make() {
 	];
 
 	// Note: The following call will cause the authenticator to display UI.
-	webauthn.makeCredential(userAccountInformation, cryptoParams).then(function (result) {
+	navigator.authentication.makeCredential(userAccountInformation, cryptoParams).then(function (result) {
 		var id = result.credential.id;
 		var publicKey = result.publicKey;
 
@@ -51,7 +51,7 @@ function concatUint8Array(a1,a2) {
 
 function verify() {
 	var id,authenticatorData,signature,hash;
-	webauthn.getAssertion("challenge").then(function(assertion) {
+	navigator.authentication.getAssertion("challenge").then(function(assertion) {
 
 		id = assertion.credential.id;
 		authenticatorData = assertion.authenticatorData;

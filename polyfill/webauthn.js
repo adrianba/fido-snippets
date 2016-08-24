@@ -1,6 +1,8 @@
 "use strict";
 
-var webauthn = (function () {
+// Editor's draft of spec at https://w3c.github.io/webauthn/#api
+
+navigator.authentication = navigator.authentication || (function () {
 
 	const webauthnDB = (function() {
 		const WEBAUTHN_DB_VERSION = 1;
@@ -11,6 +13,7 @@ var webauthn = (function () {
 		var initPromise = null;
 
 		function initDB() {
+            /* to remove database, use window.indexedDB.deleteDatabase('_webauthn'); */
 			return new Promise(function(resolve,reject) {
 				var req = indexedDB.open(WEBAUTHN_DB_NAME,WEBAUTHN_DB_VERSION);
 				req.onupgradeneeded = function() {
@@ -81,7 +84,7 @@ var webauthn = (function () {
 		};
 	}());
 
-    function makeCredential(accountInfo, cryptoParams, attestChallenge, timeout, blacklist, ext) {
+    function makeCredential(accountInfo, cryptoParams, attestChallenge, options) {
 		var acct = {rpDisplayName: accountInfo.rpDisplayName, userDisplayName: accountInfo.displayName};
 		var params = [];
 		var i;
@@ -97,7 +100,7 @@ var webauthn = (function () {
 				params[i] = cryptoParams[i];
 			}
 		}
-        return msCredentials.makeCredential(acct, params, attestChallenge).then(function (cred) {
+        return msCredentials.makeCredential(acct, params).then(function (cred) {
 			if (cred.type === "FIDO_2_0") {
 				var result = Object.freeze({
 					credential: {type: "ScopedCred", id: cred.id},
@@ -132,11 +135,12 @@ var webauthn = (function () {
     	}
     }
 
-    function getAssertion(challenge, timeout, allowlist, ext) {
+    function getAssertion(challenge, options) {
+        var allowlist = options ? options.allowList : undefined;
 		return getCredList(allowlist).then(function(credList) {
 			var filter = { accept: credList }; 
 			var sigParams = undefined;
-			if (ext && ext["webauthn.txauth.simple"]) { sigParams = { userPrompt: ext["webauthn.txauth.simple"] }; }
+			if (options && options.extensions && options.extensions["webauthn_txAuthSimple"]) { sigParams = { userPrompt: options.extensions["webauthn_txAuthSimple"] }; }
 
 	        return msCredentials.getAssertion(challenge, filter, sigParams).then(function (sig) {
 				if (sig.type === "FIDO_2_0"){
