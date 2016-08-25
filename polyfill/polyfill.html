@@ -50,23 +50,11 @@ function concatUint8Array(a1,a2) {
 }
 
 function verify() {
-	var id,authenticatorData,signature,hash;
+	var id;
 	navigator.authentication.getAssertion("challenge").then(function(assertion) {
-
 		id = assertion.credential.id;
-		authenticatorData = assertion.authenticatorData;
-		signature = assertion.signature;
-
-	    return crypto.subtle.digest("SHA-256",parseBase64(assertion.clientData));
-	})
-	.then(function(h) {
-		hash = new Uint8Array(h);
-	    var publicKey = document.getElementById('publicKey').value;
-	    return crypto.subtle.importKey("jwk",JSON.parse(publicKey),credAlgorithm,false,["verify"]);
-	})
-	.then(function(key) {
-		return crypto.subtle.verify({name:credAlgorithm, hash: { name: "SHA-256" }},
-			key,parseBase64(signature),concatUint8Array(parseBase64(authenticatorData),hash));
+        return verifyMSFidoSignature(assertion.clientData,assertion.authenticatorData,
+            assertion.signature,document.getElementById('publicKey').value);
 	})
 	.then(function(result) {
 		alert("ID=" + id + "\r\n" + result);
@@ -76,10 +64,39 @@ function verify() {
 	});
 }
 
+function verifyWithID() {
+	var id = document.getElementById('credID').value;
+    var allowList = [{type:"ScopedCred",id:id}];
+	navigator.authentication.getAssertion("challenge",{allowList}).then(function(assertion) {
+		id = assertion.credential.id;
+        return verifyMSFidoSignature(assertion.clientData,assertion.authenticatorData,
+            assertion.signature,document.getElementById('publicKey').value);
+	})
+	.then(function(result) {
+		alert("ID=" + id + "\r\n" + result);
+	})
+	.catch(function(err) {
+		alert(err);
+	});
+}
+
+function verifyMSFidoSignature(clientData,authenticatorData,signature,publicKey) {
+    var hash;
+	return crypto.subtle.digest("SHA-256",parseBase64(clientData))
+	.then(function(h) {
+		hash = new Uint8Array(h);
+	    return crypto.subtle.importKey("jwk",JSON.parse(publicKey),credAlgorithm,false,["verify"]);
+	})
+	.then(function(key) {
+		return crypto.subtle.verify({name:credAlgorithm, hash: { name: "SHA-256" }},
+			key,parseBase64(signature),concatUint8Array(parseBase64(authenticatorData),hash));
+	});
+}
+
 </script>
 </head>
 <body onLoad="loaded()">
-	<button onclick="make()">Make</button> <button onclick="verify()">Verify</button>
+	<button onclick="make()">Make</button> <button onclick="verify()">Verify</button> <button onclick="verifyWithID()">Verify with ID</button>
 
 	<div>
 	  <input type="text" size="80" id="credID"><br><input type="text" size="120" id="publicKey">
