@@ -3,6 +3,11 @@ using System.Text;
 using System.Web.Script.Serialization;
 using System.Security.Cryptography;
 
+/*
+ *  The App class is a simple example using pre-defined constants to be able to test the
+ *  FidoAuthenticator class. These constants are examples of what would be generated in the
+ *  browser when using the Web Authentication APIs.
+ */
 class App {
 	const string challenge = "Y2xpbWIgYSBtb3VudGFpbg";
 	const string pk = "{ 	\"kty\" : \"RSA\", 	\"alg\" : \"RS256\", 	\"ext\" : false, 	\"n\" : \"k-d_ZbVlAu-EBhRNlevnd0cBqJEPlhBefOMMLgHeGTS28Uev6_xHVCZ774I2XdtVF-M5En0aTdekAX82K2SVnO9TEZ4GdJFR1kW1jppLtrlUyjQqggq60OwkUxHM14XDQBhvgeW3fjpETraB-R_scyGeK7lNWMF8jW-NjvU_nljTyuHoDVnYJxPuCunlQ7uzg80iURp0jFKhw7FedPkzyQllG0HRRfzwQG1WOyECxkdPmMk7iPdF-B-Z78S9Fd8Dx2R8OZHEpFMdQ3Z3bMLG8prSbXcmBXlBtmwSLPzEEb3FuPdJQtXzVyg2i3jAR25zWA_XemXHBv7XE5Mf3JYldQ\", 	\"e\" : \"AQAB\" }";
@@ -16,6 +21,16 @@ class App {
 	}
 }
 
+/*
+ *  The FidoAuthenticator class contains the logic for validating the signature returned from getAssertion in the
+ *  browser. This code is currently specific to the early implementation in Microsoft Edge and will need to change
+ *  when the final standard is adopted. This code would run on the server in order to validate that the user
+ *  really is able to validate using the credentials previously created with the makeCredential API.
+ *
+ *  The public key in pk would have been stored on the server using the results of makeCredential. The challenge
+ *  would have been created on ther server and sent to the client for use in the getAssertion call. The other
+ *  parameters are returned by getAssertion and transmitted from the browser to the server for validation. 
+ */
 class FidoAuthenticator {
 	public static bool validateSignature(string pk, string clientData, string authnrData, string signature, string challenge)
 	{

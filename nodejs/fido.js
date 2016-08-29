@@ -9,6 +9,16 @@ const d = 'ew0KCSJjaGFsbGVuZ2UiIDogImFhYSINCn0A';
 const s = 'CHFTbWVDWGZQP1Y4ydO3wZSNVXqbXUDM2zEDkxsoLC661bgSkFzCPpXC_58YUla94EARnBhAeDQBKa1O12cp7K2E5sjn14cM9mfkCkxTAGzWe8Av5yiCN2JFnRZy02VWADuSVJzdOVEI8bwAWO713-WwltumDanFXA-Lwa6_9sNLJe9J4Sx5hM9joP-iVlth_pGxxILQhQR-3500zcuMYltwkcr0V5tYl7obOEEfPUhe0lxeSvBIiuCFqoPmouirEIFGKQ2o2PVh7bhfg03e2nWSWNOQ4kZV1ZkNxnoTGI90RapPnwYoWpucV3gyJBF-SJS9Y_yfu7EQkbdsuyv9Dw';
 const challenge = 'aaa';
 
+/*
+ *  fidoAuthenticator contains the logic for validating the signature returned from getAssertion in the
+ *  browser. This code is currently specific to the early implementation in Microsoft Edge and will need to change
+ *  when the final standard is adopted. This code would run on the server in order to validate that the user
+ *  really is able to validate using the credentials previously created with the makeCredential API.
+ *
+ *  The public key in pk would have been stored on the server using the results of makeCredential. The challenge
+ *  would have been created on ther server and sent to the client for use in the getAssertion call. The other
+ *  parameters are returned by getAssertion and transmitted from the browser to the server for validation. 
+ */
 var fidoAuthenticator = {
 	validateSignature: function (pk,d,a,s,challenge) {
 		var c = new Buffer(d,'base64');

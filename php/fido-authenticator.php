@@ -1,6 +1,16 @@
 <?php
 include('Crypt/RSA.php');
 
+/*
+ *  The fido_authenticator class contains the logic for validating the signature returned from getAssertion in the
+ *  browser. This code is currently specific to the early implementation in Microsoft Edge and will need to change
+ *  when the final standard is adopted. This code would run on the server in order to validate that the user
+ *  really is able to validate using the credentials previously created with the makeCredential API.
+ *
+ *  The public key in $pk would have been stored on the server using the results of makeCredential. The $challenge
+ *  would have been created on ther server and sent to the client for use in the getAssertion call. The other
+ *  parameters are returned by getAssertion and transmitted from the browser to the server for validation. 
+ */
 class fido_authenticator
 {
 	public static function validate_signature($pk,$clientData,$authnrData,$signature,$challenge)
