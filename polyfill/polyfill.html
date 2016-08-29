@@ -51,7 +51,8 @@ function concatUint8Array(a1,a2) {
 
 function verify() {
 	var id;
-	navigator.authentication.getAssertion("challenge").then(function(assertion) {
+    const challenge = "challenge-string"; // this would normally come from the server 
+	navigator.authentication.getAssertion(challenge).then(function(assertion) {
 		id = assertion.credential.id;
         return verifyMSFidoSignature(assertion.clientData,assertion.authenticatorData,
             assertion.signature,document.getElementById('publicKey').value);
@@ -66,8 +67,9 @@ function verify() {
 
 function verifyWithID() {
 	var id = document.getElementById('credID').value;
+    const challenge = "challenge-string"; // this would normally come from the server 
     var allowList = [{type:"ScopedCred",id:id}];
-	navigator.authentication.getAssertion("challenge",{allowList}).then(function(assertion) {
+	navigator.authentication.getAssertion(challenge,{allowList}).then(function(assertion) {
 		id = assertion.credential.id;
         return verifyMSFidoSignature(assertion.clientData,assertion.authenticatorData,
             assertion.signature,document.getElementById('publicKey').value);
@@ -82,6 +84,8 @@ function verifyWithID() {
 
 function verifyMSFidoSignature(clientData,authenticatorData,signature,publicKey) {
     var hash;
+    // the server would have to validate that the clientData contained the same challenge
+    // that was generated on the server for the getAssertion call
 	return crypto.subtle.digest("SHA-256",parseBase64(clientData))
 	.then(function(h) {
 		hash = new Uint8Array(h);
